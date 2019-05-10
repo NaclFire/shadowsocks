@@ -1,20 +1,18 @@
 ﻿#!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
-import logging
-import time
-import sys
-import os
-import socket
-from server_pool import ServerPool
-import traceback
-from shadowsocks import common, shell, lru_cache
-from configloader import load_config, get_config
-import importloader
-import platform
-import datetime
 import fcntl
+import importlib
+import logging
+import os
+import platform
+import socket
+import sys
+import traceback
 
+import importloader
+from configloader import load_config, get_config
+from server_pool import ServerPool
+from shadowsocks import common, shell
 
 switchrule = None
 db_instance = None
@@ -23,7 +21,7 @@ db_instance = None
 class DbTransfer(object):
 
     def __init__(self):
-        reload(sys)
+        importlib.reload(sys)
         sys.setdefaultencoding('utf-8')
         import threading
         self.last_update_transfer = {}
@@ -841,7 +839,6 @@ class DbTransfer(object):
     @staticmethod
     def thread_db(obj):
         import socket
-        import time
         global db_instance
         timeout = 60
         socket.setdefaulttimeout(timeout)
