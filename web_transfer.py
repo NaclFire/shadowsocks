@@ -6,6 +6,8 @@ import time
 import sys
 import os
 import socket
+
+import server
 from server_pool import ServerPool
 import traceback
 from shadowsocks import common, shell, lru_cache
@@ -14,7 +16,6 @@ import importloader
 import platform
 import datetime
 import fcntl
-
 
 switchrule = None
 db_instance = None
@@ -57,7 +58,7 @@ class WebTransfer(object):
             if dt_transfer[id][0] == 0 and dt_transfer[id][1] == 0:
                 continue
             data.append({'u': dt_transfer[id][0], 'd': dt_transfer[
-                        id][1], 'user_id': self.port_uid_table[id]})
+                id][1], 'user_id': self.port_uid_table[id]})
             update_transfer[id] = dt_transfer[id]
         webapi.postApi('users/traffic',
                        {'node_id': get_config().NODE_ID},
@@ -100,7 +101,7 @@ class WebTransfer(object):
                     realip = ""
                     is_ipv6 = False
                     if common.is_ip(ip):
-                        if(common.is_ip(ip) == socket.AF_INET):
+                        if (common.is_ip(ip) == socket.AF_INET):
                             realip = ip
                         else:
                             if common.match_ipv4_address(ip) is not None:
@@ -136,7 +137,7 @@ class WebTransfer(object):
                                 'ip -6 route add ::1/128 via %s/128' %
                                 str(realip))
                             deny_str = deny_str + \
-                                "\nALL: [" + str(realip) + "]/128"
+                                       "\nALL: [" + str(realip) + "]/128"
 
                         logging.info("Local Block ip:" + str(realip))
                 if get_config().CLOUDSAFE == 0:
@@ -370,7 +371,7 @@ class WebTransfer(object):
             if 'node_speedlimit' in cfg:
                 if float(
                         self.node_speedlimit) > 0.0 or float(
-                        cfg['node_speedlimit']) > 0.0:
+                    cfg['node_speedlimit']) > 0.0:
                     cfg['node_speedlimit'] = max(
                         float(
                             self.node_speedlimit), float(
@@ -414,16 +415,24 @@ class WebTransfer(object):
             if self.is_relay and row['is_multi_user'] != 2:
                 temp_relay_rules = {}
                 for id in self.relay_rule_list:
-                    if ((self.relay_rule_list[id]['user_id'] == user_id or self.relay_rule_list[id]['user_id'] == 0) or row[
-                            'is_multi_user'] != 0) and (self.relay_rule_list[id]['port'] == 0 or self.relay_rule_list[id]['port'] == port):
+                    if ((self.relay_rule_list[id]['user_id'] == user_id or self.relay_rule_list[id]['user_id'] == 0) or
+                        row[
+                            'is_multi_user'] != 0) and (
+                            self.relay_rule_list[id]['port'] == 0 or self.relay_rule_list[id]['port'] == port):
                         has_higher_priority = False
                         for priority_id in self.relay_rule_list:
                             if (
                                     (
-                                        self.relay_rule_list[priority_id]['priority'] > self.relay_rule_list[id]['priority'] and self.relay_rule_list[id]['id'] != self.relay_rule_list[priority_id]['id']) or (
-                                        self.relay_rule_list[priority_id]['priority'] == self.relay_rule_list[id]['priority'] and self.relay_rule_list[id]['id'] > self.relay_rule_list[priority_id]['id'])) and (
-                                    self.relay_rule_list[priority_id]['user_id'] == user_id or self.relay_rule_list[priority_id]['user_id'] == 0) and (
-                                    self.relay_rule_list[priority_id]['port'] == port or self.relay_rule_list[priority_id]['port'] == 0):
+                                            self.relay_rule_list[priority_id]['priority'] > self.relay_rule_list[id][
+                                        'priority'] and self.relay_rule_list[id]['id'] !=
+                                            self.relay_rule_list[priority_id]['id']) or (
+                                            self.relay_rule_list[priority_id]['priority'] == self.relay_rule_list[id][
+                                        'priority'] and self.relay_rule_list[id]['id'] >
+                                            self.relay_rule_list[priority_id]['id'])) and (
+                                    self.relay_rule_list[priority_id]['user_id'] == user_id or
+                                    self.relay_rule_list[priority_id]['user_id'] == 0) and (
+                                    self.relay_rule_list[priority_id]['port'] == port or
+                                    self.relay_rule_list[priority_id]['port'] == 0):
                                 has_higher_priority = True
                                 continue
 
@@ -482,16 +491,24 @@ class WebTransfer(object):
                 if self.is_relay and row['is_multi_user'] != 2:
                     temp_relay_rules = {}
                     for id in self.relay_rule_list:
-                        if ((self.relay_rule_list[id]['user_id'] == user_id or self.relay_rule_list[id]['user_id'] == 0) or row[
-                                'is_multi_user'] != 0) and (self.relay_rule_list[id]['port'] == 0 or self.relay_rule_list[id]['port'] == port):
+                        if ((self.relay_rule_list[id]['user_id'] == user_id or self.relay_rule_list[id][
+                            'user_id'] == 0) or row[
+                                'is_multi_user'] != 0) and (
+                                self.relay_rule_list[id]['port'] == 0 or self.relay_rule_list[id]['port'] == port):
                             has_higher_priority = False
                             for priority_id in self.relay_rule_list:
                                 if (
                                         (
-                                            self.relay_rule_list[priority_id]['priority'] > self.relay_rule_list[id]['priority'] and self.relay_rule_list[id]['id'] != self.relay_rule_list[priority_id]['id']) or (
-                                            self.relay_rule_list[priority_id]['priority'] == self.relay_rule_list[id]['priority'] and self.relay_rule_list[id]['id'] > self.relay_rule_list[priority_id]['id'])) and (
-                                        self.relay_rule_list[priority_id]['user_id'] == user_id or self.relay_rule_list[priority_id]['user_id'] == 0) and (
-                                        self.relay_rule_list[priority_id]['port'] == port or self.relay_rule_list[priority_id]['port'] == 0):
+                                                self.relay_rule_list[priority_id]['priority'] >
+                                                self.relay_rule_list[id]['priority'] and self.relay_rule_list[id][
+                                                    'id'] != self.relay_rule_list[priority_id]['id']) or (
+                                                self.relay_rule_list[priority_id]['priority'] ==
+                                                self.relay_rule_list[id]['priority'] and self.relay_rule_list[id][
+                                                    'id'] > self.relay_rule_list[priority_id]['id'])) and (
+                                        self.relay_rule_list[priority_id]['user_id'] == user_id or
+                                        self.relay_rule_list[priority_id]['user_id'] == 0) and (
+                                        self.relay_rule_list[priority_id]['port'] == port or
+                                        self.relay_rule_list[priority_id]['port'] == 0):
                                     has_higher_priority = True
                                     continue
 
@@ -499,7 +516,7 @@ class WebTransfer(object):
                                 continue
 
                             if self.relay_rule_list[id][
-                                    'dist_ip'] == '0.0.0.0' and row['is_multi_user'] == 0:
+                                'dist_ip'] == '0.0.0.0' and row['is_multi_user'] == 0:
                                 continue
 
                             temp_relay_rules[id] = self.relay_rule_list[id]
@@ -619,13 +636,13 @@ class WebTransfer(object):
     def del_servers():
         global db_instance
         for port in [
-                v for v in ServerPool.get_instance().tcp_servers_pool.keys()]:
+            v for v in ServerPool.get_instance().tcp_servers_pool.keys()]:
             if ServerPool.get_instance().server_is_run(port) > 0:
                 ServerPool.get_instance().cb_del_server(port)
                 if port in db_instance.last_update_transfer:
                     del db_instance.last_update_transfer[port]
         for port in [
-                v for v in ServerPool.get_instance().tcp_ipv6_servers_pool.keys()]:
+            v for v in ServerPool.get_instance().tcp_ipv6_servers_pool.keys()]:
             if ServerPool.get_instance().server_is_run(port) > 0:
                 ServerPool.get_instance().cb_del_server(port)
                 if port in db_instance.last_update_transfer:
@@ -633,6 +650,8 @@ class WebTransfer(object):
 
     @staticmethod
     def thread_db(obj):
+        import os
+        import signal
         import socket
         import time
         import webapi_utils
@@ -661,6 +680,8 @@ class WebTransfer(object):
                     if ping is None:
                         logging.error(
                             'something wrong with your http api, please check your config and website status and try again later.')
+                        # 关闭自己
+                        os.kill(os.getpid(), signal.SIGKILL)
                     else:
                         db_instance.push_db_all_user()
                         rows = db_instance.pull_db_all_user()
