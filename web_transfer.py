@@ -678,23 +678,27 @@ class WebTransfer(object):
                 try:
                     ping = webapi.getApi('func/ping')
                     if ping is None:
-                        logging.error(
-                            'something wrong with your http api, please check your config and website status and try again later.')
+                        logging.error('something wrong with your http api, please check your config and website status and try again later.')
                         # 关闭自己
                         os.kill(os.getpid(), signal.SIGKILL)
                     else:
                         db_instance.push_db_all_user()
                         rows = db_instance.pull_db_all_user()
-                        db_instance.del_server_out_of_bound_safe(
-                            last_rows, rows)
+                        db_instance.del_server_out_of_bound_safe(last_rows, rows)
                         last_rows = rows
                 except Exception as e:
+                    # 关闭自己
+                    os.kill(os.getpid(), signal.SIGKILL)
                     trace = traceback.format_exc()
                     logging.error(trace)
                     # logging.warn('db thread except:%s' % e)
                 if db_instance.event.wait(60) or not db_instance.is_all_thread_alive():
+                    # 关闭自己
+                    os.kill(os.getpid(), signal.SIGKILL)
                     break
                 if db_instance.has_stopped:
+                    # 关闭自己
+                    os.kill(os.getpid(), signal.SIGKILL)
                     break
         except KeyboardInterrupt as e:
             pass
